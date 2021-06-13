@@ -1,0 +1,13 @@
+---
+title: Binary Exploitation: An Introduction
+author: Adwaith Gautham
+rights: WTFPL License
+lang: en-US
+numbersections: true
+abstract: |
+  Your summary.
+
+# Filter preferences:
+# - pandoc-crossref
+linkReferences: true
+---
