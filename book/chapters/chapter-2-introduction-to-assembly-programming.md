@@ -13,7 +13,7 @@ Intel/AMD processors.
 <p>
 Let us start with a question. What is a programming language? A programming language is a set of instructions and constructs which can be used to program machines. That machine can be hardware, it can be implemented in software(virtual machines). In this chapter, we will be exploring the type of programming language used to program processors.
 
-In [Chapter1's Init](#Init1.1), we defined our own set of instructions and rules to program an imaginary processor. It had 256 instructions - which can be encoded with 1 byte. We just didn't specify instructions, we also specified a lot of other things. We specified a way to access data - only through addresses. We specified that operands of most instructions(add, sub, mul, copy, jump etc.,) are memory addresses. We defined a datatype of size 2 bytes. We can go ahead and define all 256 instructions, how they are encoded, their operands, datatypes etc., With all this, a programmer can write programs which can be run on that processor. All this is collectively called an **Instruction Set**. You write a program using this well defined instruction set, but then what would you want to do? You obviously want to run it. Just having a well defined instruction set is not enough. There should be a **machine** on which you can run that program. Basically, that machine should understand the instruction set and run the instructions listed in the program. For this to happen, that machine should **implement** this instruction set. What is that machine? Is it a piece of hardware? Is it another software program?
+In [Chapter1's Init](#Init1.1), we defined our own set of instructions and rules to program an imaginary processor. It had 256 instructions - which can be encoded with 1 byte. We just didn't specify instructions, we also specified a lot of other things. We specified a way to access data - only through addresses. We specified that operands of most instructions(add, sub, mul, copy, jump etc.,) are memory addresses. We defined a datatype of size 2 bytes. We can go ahead and define all 256 instructions, how they are encoded, their operands, datatypes etc. With all this, a programmer can write programs which can be run on that processor. All this is collectively called an **Instruction Set**. You write a program using this well defined instruction set, but then what would you want to do? You obviously want to run it. Just having a well defined instruction set is not enough. There should be a **machine** on which you can run that program. Basically, that machine should understand the instruction set and run the instructions listed in the program. For this to happen, that machine should **implement** this instruction set. What is that machine? Is it a piece of hardware? Is it another software program?
 
 The machine which implements that Instruction Set be seen from 2 sides. One is from programmer's side. All the programmer sees is the Instruction Set - whatever is given to him to write programs. This programmer's perspective of a machine is called **Architecture**. That is why, it is generally refered to as **Instruction Set Architecture(ISA)**. Another view is the actual implementation of the machine - how is each instruction implemented? How are the arithmetic instructions implemented? What algorithms are used? etc., This view is called **Organization**. Take a look at the following diagram.
 </p>
@@ -502,7 +502,7 @@ This is the syntax: ```mov Destination, Source```.
 * ```mov Mem, Reg```
 * ```mov Mem, Imm```
 
-Note that there is no **memory to memory** move instruction. At the assembly is accessed through pointers. Generally, the **memory address is loaded into a register** and then it is accessed. In some cases, direct valid addresses are used.
+Note that there is no **memory to memory** move instruction. In assembly, memory is accessed through pointers. Generally, the **memory address is loaded into a register** and then it is accessed. In some cases, direct valid addresses are used.
 
 Here are a few examples.
 
@@ -534,7 +534,7 @@ The syntax is ```lea Destination, Source```. A few examples.
 
 **3. push**
 
-Every process is given a **runtime stack** which can be used as a scratch-pad by the process. One example of this is local variables of a function. They should be in the main memory only till that function is executing. Once it returns, they should be deallocated. They can be pushed before the function starts executing and can be popped when the function is done. In 32-bit systems, the stack is 4-byte aligned. The register **esp**(Stack Pointer) always points to the top of this stack.
+Every process is given a **runtime stack** which can be used as a scratch-pad by the process. One example of this is local variables of a function. They should be in the main memory only while that function is executing. Once it returns, they should be deallocated. They can be pushed before the function starts executing and can be popped when the function is done. In 32-bit systems, the stack is 4-byte aligned. The register **esp**(Stack Pointer) always points to the top of this stack.
 </p>
 
 ```
@@ -815,7 +815,7 @@ Just have in mind how you would a C program to do this. You can have a while loo
 
 Lets call the program *hello1.s*.
 
-Let us start with the variables. We would have a the hello string and the **format string** for printf.
+Let us start with the variables. We would have the hello string and the **format string** for printf.
 </p>
 
 ```asm
@@ -828,7 +828,7 @@ format_string: db "%c", 0x0a, 0x00
 ```
 
 <p>
-Now onto the .text section. Let us start with getting a pointer the string to a string and initializing a register to 0.
+Now onto the .text section. Let us start with getting a pointer to the string and initializing a register to 0.
 </p>
 
 ```asm
@@ -867,6 +867,11 @@ That was the loop initialization. Let us come to the body of the loop.
 <p>
 Look at the order in which the arguments are pushed. The last argument is pushed first. This is a standard followed.
 
+**Note:** We loaded the byte for each letter into `bl` above, but when when we pushed the value to
+the stack, we push `ebx` instead of `bl`. That is because the stack takes 32-bit values, not 8-bit
+values. Regardless, of the size of the register, whether it be `bl` ( 8-bit ), `bx` ( 16-bit ), or `ebx` (
+32-bit ), they are all the same register, just with different sized access.
+
 Let us write the last part of the loop.
 </p>
 
@@ -889,8 +894,10 @@ The following is the complete listing.
 -----------------------------------------------------------------------hello1.s
 section .rodata
 
+; Note: The hex values separated by commas add literal bytes to the string.
+;       In this case we terminate each string with a null byte
 str: db "Hello World!", 0x00
-format_string: db "%c", 0x0a, 0x00
+format_string: db "%c", 0x0a, 0x00 ; 0x0a is the newline character as a byte
 
 extern printf
 extern exit
@@ -1107,6 +1114,8 @@ loop:
 ```
 
 <p>
+**Note:** `r15b` is the 1-byte version of the 64-bit `r15` register, similar to the way `bl` is the 1-byte version of the `ebx` register.
+
 Now is the interesting part, the body of the loop.
 </p>
 
@@ -1226,7 +1235,7 @@ d
 Hardware manufacturers and programmers, operating system designers use different units to measure memory. 1 GB harddisk means it is a 1 Gigabytes harddisk. Here, 1 GB = 10^9 bytes. In operating systems, everything is a power of 2. If someone mentions 1GB, he probably means (2^10)^3 bytes. This is an official unit called the **Gibibyte(GiB)**
 
 * 1KB = 1,000B, 1KiB = 1,024B
-* 1MB = 1,000,000B, 1MiB = 1024*2 = 1,048,576B
+* 1MB = 1,000,000B, 1MiB = 1024^2 = 1,048,576B
 * 1GB = 1,000,000,000B, 1GiB = 1024^3 = 1,073,741,824B
 
 This continues: Tebibytes, Pebibytes, Exbibytes...
@@ -1235,7 +1244,7 @@ This continues: Tebibytes, Pebibytes, Exbibytes...
 ### 2.7.2 On the 8086 Intel processor
 
 <p>
-The Intel 8086 processor is very interesting. It was originally a 16-bit processor => Its data bus size was 16 bits. Its address bus size was also 16 bits. This meant it could address a maximum of 2^16 = 65536 bytes - 64KiB. Programmers wanted more system space, more memory but the processor could handle only 64KiB. There was a need for the processor manufacturers to support more memory. That is when they came up with the concept of **segmentation**. In this new design, the size of the address was 20-bits ie ie., it could address a maximum of 1MiB which is 16 times of 64KiB. Let us have a quick look at how this works.
+The Intel 8086 processor is very interesting. It was originally a 16-bit processor => Its data bus size was 16 bits. Its address bus size was also 16 bits. This meant it could address a maximum of 2^16 = 65536 bytes - 64KiB. Programmers wanted more system space, more memory but the processor could handle only 64KiB. There was a need for the processor manufacturers to support more memory. That is when they came up with the concept of **segmentation**. In this new design, the size of the address was 20-bits ie., it could address a maximum of 1MiB which is 16 times of 64KiB. Let us have a quick look at how this works.
 
 The complete address space is divided into **segments**. Each byte in the address space has an address of the form **Segment : Offset** where **Segment** contains that byte at an offset of **Offset**. 
 
